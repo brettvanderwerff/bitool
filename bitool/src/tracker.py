@@ -46,16 +46,16 @@ class ConnectReq():
         self.sock.close()
 
 class AnnounceReq():
-    def __init__(self, torrent_file):
-        self.connect_req = ConnectReq()
+    def __init__(self, connect_req, torrent_file, download_file):
+        self.connect_req = connect_req
         self.connect_req.connect()
+        self.download_file = download_file
         self.interval = None
         self.ips_ports = None
         self.leechers = None
         self.sock = None
         self.seeders = None
-        self.torrent_file = TorrentFile(torrent_file)
-        self.torrent_file.read_file()
+        self.torrent_file = torrent_file
         self.transaction_id = random.randrange(1, 1000)
 
     TRACKER_URL = 'tracker.coppersurfer.tk'
@@ -89,9 +89,6 @@ class AnnounceReq():
         bin_hash = binascii.a2b_hex(self.hash().hexdigest())
         peer_id = self.peer_id()
         action = 1
-        downloaded = 0
-        left = self.torrent_file.length
-        uploaded = 0
         event = 0
         ip = 0
         key = random.randrange(1, 1000)
@@ -103,9 +100,9 @@ class AnnounceReq():
                              self.transaction_id,
                              bin_hash,
                              peer_id,
-                             downloaded,
-                             left,
-                             uploaded,
+                             self.download_file.DOWNLOADED,
+                             self.download_file.left,
+                             self.download_file.UPLOADED,
                              event,
                              ip,
                              key,
@@ -146,8 +143,24 @@ class AnnounceReq():
         self.recv_connec_id()
         self.sock.close()
 
+class DownloadFile(): #ToDO put this in its own module, solve circular import issue
+    '''
+    Class represents the file being downloaded via the bit torrent network
+    '''
+    def __init__(self, torrent_file):
+        self.left = torrent_file.length
+
+    DOWNLOADED = 0
+    UPLOADED = 0
+
+
 if __name__ == "__main__":
-    announce_req = AnnounceReq("test.torrent")
+    connect_req = ConnectReq()
+    connect_req.connect()
+    torrent_file = TorrentFile("test.torrent")
+    torrent_file.read_file()
+    download_file = DownloadFile(torrent_file)
+    announce_req = AnnounceReq(connect_req, torrent_file, download_file)
     announce_req.connect()
     print(announce_req.ips_ports)
 
