@@ -1,1 +1,1 @@
-from .src.torrent_file import TorrentFile
+from bitool.src.torrent_file import TorrentFile

@@ -26,9 +26,8 @@ class TorrentFile():
         self.length = self.info[b'length']
         self.name = self.info[b'name']
 
-
 if __name__ == "__main__":
     torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
-    print(torrent_file.meta_info)
+    print(bencoder.encode(torrent_file.info))
 
