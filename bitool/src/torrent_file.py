@@ -29,6 +29,6 @@ class TorrentFile():
 if __name__ == "__main__":
     torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
-    print(torrent_file.meta_info)
+    print(torrent_file.length)
 
 

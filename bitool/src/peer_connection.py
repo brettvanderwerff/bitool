@@ -1,10 +1,18 @@
 from bitool import AnnounceReq, TorrentFile, ConnectReq, DownloadFile
 import socket
+import struct
+
+
+'''
+~~~~~~~~~~
+LOOK AWAY THIS IS NOT DONE :)
+~~~~~~~~~~
+
+'''
 
 class PeerConnections():
     def __init__(self, announce_req):
         self.announce_req = announce_req
-        self.handshake_peers = []
         self.sock = None
 
     def gen_handshake(self):
@@ -45,7 +53,9 @@ class PeerConnections():
                 self.sock.send(handshake)
                 response = self.sock.recv(4096)
                 if self.validate_handshake(response):
-                    self.handshake_peers.append(peer)
+                    self.send_interested()
+                    self.parse_response()
+                    break
             except (TimeoutError, OSError) as e:
                 continue
 
@@ -55,8 +65,20 @@ class PeerConnections():
         :return:
         '''
         self.sock.send(self.gen_interested())
+
+
+    def parse_response(self):
+        #https://wiki.theory.org/index.php/BitTorrentSpecification
         response = self.sock.recv(4096)
-        print(response)
+        id = struct.unpack('>B', response[4:5])
+
+        if id == 0:
+            print('choked')
+        elif id == 1:
+            print('unchoked')
+        else:
+            print('id was something else')
+
 
 
     def validate_handshake(self, response):
@@ -80,7 +102,6 @@ class PeerConnections():
         '''
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.send_handshakes()
-        print(self.handshake_peers)
         self.send_interested()
         self.sock.close()
 
