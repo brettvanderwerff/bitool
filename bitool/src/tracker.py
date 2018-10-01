@@ -58,21 +58,22 @@ class AnnounceReq():
         self.seeders = None
         self.torrent_file = torrent_file
         self.transaction_id = random.randrange(1, 1000)
+        self.hash = self.gen_hash()
+        self.peer_id = self.gen_peer_id()
 
     TRACKER_URL = 'tracker.coppersurfer.tk'
     TRACKER_PORT = 6969
 
-    def hash(self):
+    def gen_hash(self):
         '''
         Generates SHA1 hash of the torrent info value.
         :return: hash
         '''
         info = self.torrent_file.info
         encoded_info = bencoder.encode(info)
-        hash = hashlib.sha1(encoded_info)
-        return hash
+        return hashlib.sha1(encoded_info)
 
-    def peer_id(self):
+    def gen_peer_id(self):
         '''
         Generates a 20 byte peer ID as per bit torrent protocol: http://www.bittorrent.org/beps/bep_0020.html
         :return:
@@ -87,8 +88,8 @@ class AnnounceReq():
         Send announce request to tracker.
         '''
         connection_id = self.connect_req.connection_id
-        bin_hash = binascii.a2b_hex(self.hash().hexdigest())
-        peer_id = self.peer_id()
+        bin_hash = binascii.a2b_hex(self.hash.hexdigest())
+        peer_id = self.peer_id
         action = 1
         event = 0
         ip = 0
