@@ -41,23 +41,20 @@ class PeerConnections():
         return message_len + id
 
 
-    def send_handshakes(self):
+    def send_handshakes(self, peer):
         '''
         Iterates though list of peers gotten from the tracker, sends each one a handshake message.
         '''
         handshake = self.gen_handshake()
-        for peer in announce_req.ips_ports:
-            try:
-                print("Attempting to connect to peer at IP address: " + str(peer[0] + ", port " + str(peer[1])))
-                self.sock.connect(peer)
-                self.sock.send(handshake)
-                response = self.sock.recv(4096)
-                if self.validate_handshake(response):
-                    self.send_interested()
-                    self.parse_response()
-                    break
-            except (TimeoutError, OSError) as e:
-                continue
+
+        print("Attempting to connect to peer at IP address: " + str(peer[0] + ", port " + str(peer[1])))
+        self.sock.connect(peer)
+        self.sock.send(handshake)
+        response = self.sock.recv(4096)
+        if self.validate_handshake(response):
+            self.send_interested()
+            self.parse_response()
+
 
     def send_interested(self):
         '''
@@ -70,14 +67,32 @@ class PeerConnections():
     def parse_response(self):
         #https://wiki.theory.org/index.php/BitTorrentSpecification
         response = self.sock.recv(4096)
-        id = struct.unpack('>B', response[4:5])
+        id = struct.unpack('>B', response[4:5])[0]
+        print(response)
+        #ToDo this parsing does not seem correct
 
+        print("ID of response is " + str(id))
         if id == 0:
             print('choked')
         elif id == 1:
             print('unchoked')
+        elif id == 2:
+            print('interested')
+        elif id == 3:
+            print('uninterested')
+        elif id == 4:
+            print('have')
+        elif id == 5:
+            print('bitfield')
+        elif id == 6:
+            print('request')
+        elif id == 7:
+            print('piece')
+        elif id == 8:
+            print('cancel')
+
         else:
-            print('id was something else')
+            print('response id is unrecognized')
 
 
 
@@ -100,10 +115,16 @@ class PeerConnections():
         '''
         Master connection method for PeerConnection
         '''
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.send_handshakes()
-        self.send_interested()
-        self.sock.close()
+
+        for peer in announce_req.ips_ports:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                self.send_handshakes(peer)
+            except (TimeoutError, OSError) as e:
+                self.sock.close()
+                continue
+            self.send_interested()
+            self.sock.close()
 
 
 # ToDo master method for connection
