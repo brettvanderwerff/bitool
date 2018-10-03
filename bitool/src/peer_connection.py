@@ -50,8 +50,9 @@ class PeerConnections():
         print("Attempting to connect to peer at IP address: " + str(peer[0] + ", port " + str(peer[1])))
         self.sock.connect(peer)
         self.sock.send(handshake)
-        response = self.sock.recv(4096)
+        response = self.sock.recv(10**9) # hopefully burn though all of bitfield stream before attempting to send interested message, reset to 68 for no bitfield
         if self.validate_handshake(response):
+            print(response)
             self.send_interested()
             self.parse_response()
 
@@ -66,9 +67,14 @@ class PeerConnections():
 
     def parse_response(self):
         #https://wiki.theory.org/index.php/BitTorrentSpecification
-        response = self.sock.recv(4096)
-        id = struct.unpack('>B', response[4:5])[0]
-        print(response)
+        payload_length = struct.unpack(">I", self.sock.recv(4))[0]
+        # protection from a keep-alive
+        if payload_length > 0:
+            id = ord(self.sock.recv(1)) # probably always getting bitfield because that is the next thing in the stream after handshake
+
+        print(payload_length)
+        print(id)
+        print(self.sock.recv(4096))
         #ToDo this parsing does not seem correct
 
         print("ID of response is " + str(id))
@@ -93,7 +99,6 @@ class PeerConnections():
 
         else:
             print('response id is unrecognized')
-
 
 
     def validate_handshake(self, response):
