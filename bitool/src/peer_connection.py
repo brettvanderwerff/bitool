@@ -50,9 +50,8 @@ class PeerConnections():
         print("Attempting to connect to peer at IP address: " + str(peer[0] + ", port " + str(peer[1])))
         self.sock.connect(peer)
         self.sock.send(handshake)
-        response = self.sock.recv(10**9) # hopefully burn though all of bitfield stream before attempting to send interested message, reset to 68 for no bitfield
+        response = self.sock.recv(68)# hopefully burn though all of bitfield stream before attempting to send interested message, reset to 68 for no bitfield
         if self.validate_handshake(response):
-            print(response)
             self.send_interested()
             self.parse_response()
 
@@ -68,34 +67,36 @@ class PeerConnections():
     def parse_response(self):
         #https://wiki.theory.org/index.php/BitTorrentSpecification
         payload_length = struct.unpack(">I", self.sock.recv(4))[0]
-        # protection from a keep-alive
         if payload_length > 0:
-            id = ord(self.sock.recv(1)) # probably always getting bitfield because that is the next thing in the stream after handshake
+            id = ord(self.sock.recv(1))
+            print(id)# probably always getting bitfield because that is the next thing in the stream after handshake
 
-        print(payload_length)
-        print(id)
-        print(self.sock.recv(4096))
-        #ToDo this parsing does not seem correct
-
-        print("ID of response is " + str(id))
-        if id == 0:
-            print('choked')
-        elif id == 1:
-            print('unchoked')
-        elif id == 2:
-            print('interested')
-        elif id == 3:
-            print('uninterested')
-        elif id == 4:
-            print('have')
-        elif id == 5:
-            print('bitfield')
-        elif id == 6:
-            print('request')
-        elif id == 7:
-            print('piece')
-        elif id == 8:
-            print('cancel')
+        bitfeild = self.sock.recv(10**6) # burn bitfeild stream
+        if len(bitfeild) == payload_length - 1:
+            self.send_interested()
+            payload_length = struct.unpack(">I", self.sock.recv(4))[0]
+            print(payload_length)
+            if payload_length > 0:
+                id = ord(self.sock.recv(1))
+                print("ID of response is " + str(id))
+                if id == 0:
+                    print('choked')
+                elif id == 1:
+                    print('unchoked')
+                elif id == 2:
+                    print('interested')
+                elif id == 3:
+                    print('uninterested')
+                elif id == 4:
+                    print('have')
+                elif id == 5:
+                    print('bitfield')
+                elif id == 6:
+                    print('request')
+                elif id == 7:
+                    print('piece')
+                elif id == 8:
+                    print('cancel')
 
         else:
             print('response id is unrecognized')
