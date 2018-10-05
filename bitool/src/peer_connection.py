@@ -73,6 +73,7 @@ class PeerConnections():
 
         bitfeild = self.sock.recv(10**6) # burn bitfeild stream
         if len(bitfeild) == payload_length - 1:
+            print(bitfeild)
             self.send_interested()
             payload_length = struct.unpack(">I", self.sock.recv(4))[0]
             print(payload_length)
@@ -99,7 +100,7 @@ class PeerConnections():
                     print('cancel')
 
         else:
-            print('response id is unrecognized')
+            print('bitfeild does not match length')
 
 
     def validate_handshake(self, response):
