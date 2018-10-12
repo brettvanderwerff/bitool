@@ -1,6 +1,7 @@
 from bitool import AnnounceReq, TorrentFile, ConnectReq, DownloadFile
 import socket
 import struct
+from bitstring import BitArray
 
 
 '''
@@ -74,6 +75,7 @@ class PeerConnections():
         bitfeild = self.sock.recv(10**6) # burn bitfeild stream
         if len(bitfeild) == payload_length - 1:
             print(bitfeild)
+            self.decode_bifield(bitfeild)
             self.send_interested()
             payload_length = struct.unpack(">I", self.sock.recv(4))[0]
             print(payload_length)
@@ -101,6 +103,15 @@ class PeerConnections():
 
         else:
             print('bitfeild does not match length')
+
+    def decode_bifield(self, bitfield):
+        bit_array = BitArray(bitfield)
+        counter = 0 # explains trailing zeros https://stackoverflow.com/questions/44308457/confusion-around-bitfield-torrent
+        for item in bit_array:
+            if item == True:
+                counter += 1
+        if counter == torrent_file.piece_count:
+            print('Has all pieces')
 
 
     def validate_handshake(self, response):

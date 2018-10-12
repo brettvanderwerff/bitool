@@ -1,4 +1,5 @@
 import bencoder
+import math
 
 class TorrentFile():
     '''
@@ -13,6 +14,9 @@ class TorrentFile():
         self.meta_info = None
         self.name = None
         self.torrent_file = torrent_file
+        self.pieces = None
+        self.piece_length = None
+        self.piece_count = None
 
     def read_file(self):
         '''
@@ -25,6 +29,9 @@ class TorrentFile():
         self.info = self.meta_info[b'info']
         self.length = self.info[b'length']
         self.name = self.info[b'name']
+        self.pieces = self.info[b'pieces']
+        self.piece_length = self.info[b'piece length']
+        self.piece_count = math.ceil(self.length / self.piece_length)
 
 if __name__ == "__main__":
     torrent_file = TorrentFile("test.torrent")
