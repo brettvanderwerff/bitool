@@ -68,41 +68,36 @@ class PeerConnections():
     def parse_response(self):
         #https://wiki.theory.org/index.php/BitTorrentSpecification
         payload_length = struct.unpack(">I", self.sock.recv(4))[0]
-        if payload_length > 0:
-            id = ord(self.sock.recv(1))
-            print(id)# probably always getting bitfield because that is the next thing in the stream after handshake
-
-        bitfeild = self.sock.recv(10**6) # burn bitfeild stream
-        if len(bitfeild) == payload_length - 1:
-            print(bitfeild)
-            self.decode_bifield(bitfeild)
-            self.send_interested()
-            payload_length = struct.unpack(">I", self.sock.recv(4))[0]
-            print(payload_length)
-            if payload_length > 0:
-                id = ord(self.sock.recv(1))
-                print("ID of response is " + str(id))
-                if id == 0:
-                    print('choked')
-                elif id == 1:
-                    print('unchoked')
-                elif id == 2:
-                    print('interested')
-                elif id == 3:
-                    print('uninterested')
-                elif id == 4:
-                    print('have')
-                elif id == 5:
-                    print('bitfield')
-                elif id == 6:
-                    print('request')
-                elif id == 7:
-                    print('piece')
-                elif id == 8:
-                    print('cancel')
-
-        else:
-            print('bitfeild does not match length')
+        id = ord(self.sock.recv(1))
+        print("ID of response is " + str(id))
+        if id == 0:
+            print('choked')
+        elif id == 1:
+            print('unchoked')
+            self.send_request()
+            self.parse_response()
+        elif id == 2:
+            print('interested')
+        elif id == 3:
+            print('uninterested')
+        elif id == 4:
+            print('have')
+        elif id == 5:
+            print('bitfield')
+            bitfeild = self.sock.recv(10 ** 6)  # burn bitfeild stream
+            if len(bitfeild) == payload_length - 1:
+                print(bitfeild)
+                self.decode_bifield(bitfeild)
+                self.send_interested()
+                self.parse_response()
+            else:
+                print('bitfeild does not match length, dropping peer')
+        elif id == 6:
+            print('request')
+        elif id == 7:
+            print('piece')
+        elif id == 8:
+            print('cancel')
 
     def decode_bifield(self, bitfield):
         bit_array = BitArray(bitfield)
@@ -129,6 +124,19 @@ class PeerConnections():
             is_hash = True
         return is_pstr and is_hash
 
+    def build_request(self):
+        message_len = bytes([0, 0, 0, 13])  # 4 byte value indicating message length
+        id = bytes([6])  # single decimal byte message ID
+        index = bytes([0, 0, 0, 0])  # four byte zero index for first piece, hard coded for now
+        offset = bytes([0, 0, 0, 0])  # four byte block offset, hard coded for now
+        n = 2 ** 14
+        length = n.to_bytes(4, 'big') # standardized block length for 2 **14 bytes
+        return message_len + id + index + offset + length
+
+
+    def send_request(self):
+        self.sock.send(self.build_request())
+
     def connect(self):
         '''
         Master connection method for PeerConnection
@@ -136,6 +144,7 @@ class PeerConnections():
 
         for peer in announce_req.ips_ports:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(10)
             try:
                 self.send_handshakes(peer)
             except (TimeoutError, OSError) as e:
