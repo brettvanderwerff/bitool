@@ -69,7 +69,7 @@ class PeerConnections():
         #https://wiki.theory.org/index.php/BitTorrentSpecification
         payload_length = struct.unpack(">I", self.sock.recv(4))[0]
         id = ord(self.sock.recv(1))
-        print("ID of response is " + str(id))
+        print("ID of response is " + str(id) + ": ")
         if id == 0:
             print('choked')
         elif id == 1:
@@ -86,7 +86,6 @@ class PeerConnections():
             print('bitfield')
             bitfeild = self.sock.recv(10 ** 6)  # burn bitfeild stream
             if len(bitfeild) == payload_length - 1:
-                print(bitfeild)
                 self.decode_bifield(bitfeild)
                 self.send_interested()
                 self.parse_response()
@@ -96,6 +95,7 @@ class PeerConnections():
             print('request')
         elif id == 7:
             print('piece')
+            print(payload_length)
         elif id == 8:
             print('cancel')
 
@@ -144,7 +144,7 @@ class PeerConnections():
 
         for peer in announce_req.ips_ports:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.settimeout(10)
+            self.sock.settimeout(5)
             try:
                 self.send_handshakes(peer)
             except (TimeoutError, OSError) as e:
