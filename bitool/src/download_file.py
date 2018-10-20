@@ -31,7 +31,4 @@ if __name__ == "__main__":
     torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
     download_file = DownloadFile(torrent_file)
-    for index , (key, offset) in enumerate(download_file.template.items()):
-        for offset in offset.values():
-            print(index)
-            print(offset)
+    print(download_file.block_size)

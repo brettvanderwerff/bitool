@@ -102,14 +102,21 @@ class PeerConnections():
             print('request')
         elif id == 7:
             print('piece')
-            print(payload_length)
-            piece = b''
-            while len(piece) <= payload_length:
-                piece += self.sock.recv(4096)
+            print(payload_length) # should check if payload lengh == block size
+            if payload_length == download_file.block_size + 9: # explains why payload is always 9 longer than piece: <len=0009+X><id=7><index><begin><block>
+                piece_count = struct.unpack(">I", self.sock.recv(4))[0]
+                print('receiving piece number ' + str(piece_count))
+                offset = struct.unpack(">I", self.sock.recv(4))[0]
+                print('with offset ' + str(offset))
+                piece = b''
+                while len(piece) < payload_length - 9: #might need to subtract 1 from payload length is probably timing out before reaching payload_length
+                    piece += self.sock.recv(4096)
+                    print(piece)
+                    print(len(piece))
                 print(piece)
-                print(len(piece))
-            print(piece)
-            print('len of piece is ' + str(len(piece))) # never prints for some reason
+                print('len of piece is ' + str(len(piece))) # Exception occurs before reaching this point
+            else:
+                print('payload size not correct')
         elif id == 8:
             print('cancel')
         return id
@@ -161,6 +168,7 @@ class PeerConnections():
             try:
                 self.send_handshakes(peer)
             except (TimeoutError, OSError) as e:
+                print('Error has occured')
                 self.sock.close()
                 continue
             self.send_interested()
