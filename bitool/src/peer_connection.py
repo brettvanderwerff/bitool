@@ -12,8 +12,9 @@ LOOK AWAY THIS IS NOT DONE :)
 '''
 
 class PeerConnections():
-    def __init__(self, announce_req):
+    def __init__(self, announce_req, download_file):
         self.announce_req = announce_req
+        self.download_file = download_file
         self.sock = None
 
     def gen_handshake(self):
@@ -53,8 +54,8 @@ class PeerConnections():
         self.sock.send(handshake)
         response = self.sock.recv(68)# hopefully burn though all of bitfield stream before attempting to send interested message, reset to 68 for no bitfield
         if self.validate_handshake(response):
-            self.send_interested()
             self.parse_response()
+
 
 
     def send_interested(self):
@@ -63,6 +64,20 @@ class PeerConnections():
         :return:
         '''
         self.sock.send(self.gen_interested())
+
+    def parse_bitfield(self, payload_length):
+        bitfeild = self.sock.recv(10 ** 6)  # burn bitfeild stream, may be issue with losing connection
+        if len(bitfeild) == payload_length - 1:
+            self.decode_bifield(bitfeild)
+            self.send_interested()
+            if self.parse_response() == 1:
+                for index, (key, offset) in enumerate(
+                        download_file.template.items()):  # logic needs to be outside this function
+                    for offset in offset.values():
+                        self.send_request(index, offset) # never enters second loop
+                        self.parse_response()
+        else:
+            print('bitfeild does not match length, dropping peer')
 
 
     def parse_response(self):
@@ -74,8 +89,6 @@ class PeerConnections():
             print('choked')
         elif id == 1:
             print('unchoked')
-            self.send_request()
-            self.parse_response()
         elif id == 2:
             print('interested')
         elif id == 3:
@@ -84,20 +97,22 @@ class PeerConnections():
             print('have')
         elif id == 5:
             print('bitfield')
-            bitfeild = self.sock.recv(10 ** 6)  # burn bitfeild stream
-            if len(bitfeild) == payload_length - 1:
-                self.decode_bifield(bitfeild)
-                self.send_interested()
-                self.parse_response()
-            else:
-                print('bitfeild does not match length, dropping peer')
+            self.parse_bitfield(payload_length)
         elif id == 6:
             print('request')
         elif id == 7:
             print('piece')
             print(payload_length)
+            piece = b''
+            while len(piece) <= payload_length:
+                piece += self.sock.recv(4096)
+                print(piece)
+                print(len(piece))
+            print(piece)
+            print('len of piece is ' + str(len(piece))) # never prints for some reason
         elif id == 8:
             print('cancel')
+        return id
 
     def decode_bifield(self, bitfield):
         bit_array = BitArray(bitfield)
@@ -124,18 +139,16 @@ class PeerConnections():
             is_hash = True
         return is_pstr and is_hash
 
-    def build_request(self):
+
+    def send_request(self, index, offset):
         message_len = bytes([0, 0, 0, 13])  # 4 byte value indicating message length
         id = bytes([6])  # single decimal byte message ID
-        index = bytes([0, 0, 0, 0])  # four byte zero index for first piece, hard coded for now
-        offset = bytes([0, 0, 0, 0])  # four byte block offset, hard coded for now
+        index = index.to_bytes(4, 'big')  # four byte zero index for first piece
+        offset = offset.to_bytes(4, 'big') # four byte block offset
         n = 2 ** 14
-        length = n.to_bytes(4, 'big') # standardized block length for 2 **14 bytes
-        return message_len + id + index + offset + length
-
-
-    def send_request(self):
-        self.sock.send(self.build_request())
+        length = n.to_bytes(4, 'big')  # standardized block length for 2 **14 bytes
+        request = message_len + id + index + offset + length
+        self.sock.send(request)
 
     def connect(self):
         '''
@@ -165,5 +178,5 @@ if __name__ == '__main__':
     download_file = DownloadFile(torrent_file)
     announce_req = AnnounceReq(connect_req, torrent_file, download_file)
     announce_req.connect()
-    peer_connection = PeerConnections(announce_req)
+    peer_connection = PeerConnections(announce_req, download_file)
     peer_connection.connect()

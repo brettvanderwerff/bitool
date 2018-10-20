@@ -15,20 +15,11 @@ class DownloadFile():
         for piece_count, piece in enumerate(range(torrent_file.piece_count)):
             self.template['piece_{}'.format(piece_count)] = {}
             for factor, block in enumerate(range(self.blocks_per_piece)):
-                self.template['piece_{}'.format(piece_count)]['block_{}'.format(block)] = self.block_size + factor * self.block_size
+                self.template['piece_{}'.format(piece_count)]['block_{}'.format(block)] = factor * self.block_size
 
 
         if self.last_piece <= 2 ** 14:
-            self.template['peice_{}'.format(piece_count + 1)] = {'block_0' : self.last_piece}
-
-
-
-
-
-
-
-
-
+            self.template['peice_{}'.format(piece_count + 1)] = {'block_0' : self.last_piece} # need to adjust length not offset
 
 
         #ToDo add logic for if last piece is larger than 2 ** 14 bytes
@@ -40,4 +31,7 @@ if __name__ == "__main__":
     torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
     download_file = DownloadFile(torrent_file)
-    print(download_file.template)
+    for index , (key, offset) in enumerate(download_file.template.items()):
+        for offset in offset.values():
+            print(index)
+            print(offset)
