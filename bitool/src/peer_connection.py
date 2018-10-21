@@ -74,11 +74,14 @@ class PeerConnections():
             if self.parse_response() == 1:
                 self.sock.settimeout(15)
                 for index, piece in enumerate(download_file.requests):
-                    for block in piece:
-                        offset = block[0]
-                        length = block[1]
-                        self.send_request(index, offset, length) # never enters second loop
-                        self.parse_response()
+                    for block_number, block in enumerate(piece):
+                        if not download_file.have[index][block_number]:
+                            offset = block[0]
+                            length = block[1]
+                            self.send_request(index, offset, length) # never enters second loop
+                            self.parse_response()
+                            download_file.have[index][block_number] = True
+                            print(download_file.have)
                 self.write_binary()
                 exit()
         else:
@@ -175,7 +178,7 @@ class PeerConnections():
             self.sock.settimeout(5)
             try:
                 self.send_handshakes(peer)
-            except (TimeoutError, OSError) as e:
+            except (TimeoutError, OSError, struct.error, BrokenPipeError) as e:
                 print('Error has occured')
                 self.sock.close()
                 continue
@@ -189,9 +192,8 @@ class PeerConnections():
 if __name__ == '__main__':
     connect_req = ConnectReq()
     connect_req.connect()
-    torrent_file = TorrentFile("ram.torrent")
+    torrent_file = TorrentFile("bbt.torrent")
     torrent_file.read_file()
-    print(torrent_file.meta_info)
     download_file = DownloadFile(torrent_file)
     announce_req = AnnounceReq(connect_req, torrent_file, download_file)
     announce_req.connect()

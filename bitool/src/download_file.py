@@ -1,5 +1,6 @@
 from bitool import TorrentFile
 import math
+import pprint
 
 class DownloadFile():
     '''
@@ -11,17 +12,7 @@ class DownloadFile():
         self.block_size = int(torrent_file.piece_length / self.blocks_per_piece)
         self.last_piece = torrent_file.length % torrent_file.piece_length
         self.bytes = b''
-
-
-        self.template = {}
-        for piece_count, piece in enumerate(range(torrent_file.piece_count)):
-            self.template['piece_{}'.format(piece_count)] = {}
-            for factor, block in enumerate(range(self.blocks_per_piece)):
-                self.template['piece_{}'.format(piece_count)]['block_{}'.format(block)] = factor * self.block_size
-
-
-        if self.last_piece <= 2 ** 14:
-            self.template['peice_{}'.format(piece_count + 1)] = {'block_0' : self.last_piece} # need to adjust length not offset
+        self.have = []
 
         if self.last_piece == 0:
             adj = 0
@@ -55,19 +46,40 @@ class DownloadFile():
             last_piece.append(block_list)
             self.requests.insert(len(self.requests), last_piece)
 
+        self.last_piece = torrent_file.length % torrent_file.piece_length
+
+        for piece in range(torrent_file.piece_count - adj):
+            piece_list = []
+            for x in range(self.blocks_per_piece):
+                block_list = False
+                piece_list.append(block_list)
+            self.have.append(piece_list)
+
+        if self.last_piece <= 2 ** 14:
+            self.have.insert(len(self.have), [False])
+
+        else:
+            block_len = int(self.last_piece / 2 ** 14)
+            self.last_piece = self.last_piece % 2 ** 14
+            last_piece = []
+            for counter in range(block_len):
+                block_list = False
+                last_piece.append(block_list)
+            block_list = False
+            last_piece.append(block_list)
+            self.have.insert(len(self.have), last_piece)
+
+
     DOWNLOADED = 0
     UPLOADED = 0
 
 if __name__ == "__main__":
-    torrent_file = TorrentFile("test.torrent")
+    torrent_file = TorrentFile("B7F10A278541640CB2AE5563A5302E6A0E7D25ED.torrent")
     torrent_file.read_file()
     download_file = DownloadFile(torrent_file)
-    print(torrent_file.piece_count)
-    print(download_file.requests)
-    for piece_number, piece in enumerate(download_file.requests):
-        for block in piece:
-            offset = block[0]
-            length = block[1]
-            print(piece_number, offset, length)
+    for index, piece in enumerate(download_file.requests):
+        print(len(download_file.have[index]))
+        print(len(download_file.requests[index]))
+
 
 

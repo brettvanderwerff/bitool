@@ -31,7 +31,7 @@ class TorrentFile():
         try:
             self.length = self.info[b'length']
         except KeyError as e:
-            self.length = self.info[b'files'][1][b'length']
+            self.length = self.info[b'files'][1][b'length'] #may have something to do with multiple files
 
         self.name = self.info[b'name']
         self.write_name = self.name.decode('utf-8').replace(' ', '_')
@@ -41,7 +41,7 @@ class TorrentFile():
 
 
 if __name__ == "__main__":
-    torrent_file = TorrentFile("ram.torrent")
+    torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
     print(torrent_file.piece_count)
     print(torrent_file.piece_length)

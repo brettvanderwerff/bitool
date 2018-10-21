@@ -183,5 +183,5 @@ def main(magnet, output_name):
 
 
 if __name__ == "__main__":
-    sys.exit(main(magnet="",
-                  output_name="ram.torrent"))
+    sys.exit(main(magnet="magnet:?xt=urn:btih:15daaf668b57b3e9160bbc62ce9a310bfa38a93b&dn=200+Ways+to+Revive+a+Hard+Drive+pdf&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Fzer0day.ch%3A1337&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969",
+                  output_name="hd.torrent"))
