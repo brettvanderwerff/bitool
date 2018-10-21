@@ -72,6 +72,7 @@ class PeerConnections():
             self.decode_bifield(bitfeild)
             self.send_interested()
             if self.parse_response() == 1:
+                self.sock.settimeout(15)
                 for index, piece in enumerate(download_file.requests):
                     for block in piece:
                         offset = block[1]
@@ -190,6 +191,7 @@ if __name__ == '__main__':
     connect_req.connect()
     torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
+    print(torrent_file.meta_info)
     download_file = DownloadFile(torrent_file)
     announce_req = AnnounceReq(connect_req, torrent_file, download_file)
     announce_req.connect()

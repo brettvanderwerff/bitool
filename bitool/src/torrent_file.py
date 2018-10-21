@@ -35,10 +35,11 @@ class TorrentFile():
         self.piece_count = math.ceil(self.length / self.piece_length)
 
 if __name__ == "__main__":
-    torrent_file = TorrentFile("test.torrent")
+    torrent_file = TorrentFile("B7F10A278541640CB2AE5563A5302E6A0E7D25ED.torrent")
     torrent_file.read_file()
     print(torrent_file.length)
     print(torrent_file.name.decode('utf-8').replace(' ', '_'))
+    print(torrent_file.piece_count)
 
 
 
