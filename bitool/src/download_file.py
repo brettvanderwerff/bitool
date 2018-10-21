@@ -38,7 +38,7 @@ class DownloadFile():
             self.requests.append(piece_list)
 
         if self.last_piece <= 2 ** 14:
-            self.requests.insert(len(self.requests), [[0,0,self.last_piece]])
+            self.requests.insert(len(self.requests), [[0,self.last_piece]])
 
         else:
             block_len = int(self.last_piece / 2 ** 14)
@@ -59,7 +59,7 @@ class DownloadFile():
     UPLOADED = 0
 
 if __name__ == "__main__":
-    torrent_file = TorrentFile("B7F10A278541640CB2AE5563A5302E6A0E7D25ED.torrent")
+    torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
     download_file = DownloadFile(torrent_file)
     print(torrent_file.piece_count)

@@ -189,7 +189,7 @@ class PeerConnections():
 if __name__ == '__main__':
     connect_req = ConnectReq()
     connect_req.connect()
-    torrent_file = TorrentFile("D375754ACC9FFD198D7CA592D49285C7CC73D1C5.torrent")
+    torrent_file = TorrentFile("ram.torrent")
     torrent_file.read_file()
     print(torrent_file.meta_info)
     download_file = DownloadFile(torrent_file)

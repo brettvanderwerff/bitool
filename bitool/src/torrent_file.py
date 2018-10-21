@@ -1,5 +1,6 @@
 import bencoder
 import math
+import pprint
 
 class TorrentFile():
     '''
@@ -27,19 +28,24 @@ class TorrentFile():
         self.announce = self.meta_info[b'announce']
         self.announce_list = self.meta_info[b'announce-list']
         self.info = self.meta_info[b'info']
-        self.length = self.info[b'length']
+        try:
+            self.length = self.info[b'length']
+        except KeyError as e:
+            self.length = self.info[b'files'][1][b'length']
+
         self.name = self.info[b'name']
         self.write_name = self.name.decode('utf-8').replace(' ', '_')
         self.pieces = self.info[b'pieces']
         self.piece_length = self.info[b'piece length']
         self.piece_count = math.ceil(self.length / self.piece_length)
 
+
 if __name__ == "__main__":
-    torrent_file = TorrentFile("B7F10A278541640CB2AE5563A5302E6A0E7D25ED.torrent")
+    torrent_file = TorrentFile("ram.torrent")
     torrent_file.read_file()
-    print(torrent_file.length)
-    print(torrent_file.name.decode('utf-8').replace(' ', '_'))
     print(torrent_file.piece_count)
+    print(torrent_file.piece_length)
+    print(torrent_file.length)
 
 
 
