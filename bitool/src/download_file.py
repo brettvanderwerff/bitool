@@ -32,7 +32,6 @@ class DownloadFile():
             piece_list = []
             for counter, block in enumerate(range(self.blocks_per_piece)):
                 block_list = []
-                block_list.append(counter)
                 block_list.append(counter * self.block_size)
                 block_list.append(2 ** 14)
                 piece_list.append(block_list)
@@ -41,22 +40,34 @@ class DownloadFile():
         if self.last_piece <= 2 ** 14:
             self.requests.insert(len(self.requests), [[0,0,self.last_piece]])
 
-
-        #ToDo add logic for if last piece is larger than 2 ** 14 bytes
+        else:
+            block_len = int(self.last_piece / 2 ** 14)
+            self.last_piece = self.last_piece % 2 ** 14
+            last_piece = []
+            for counter in range(block_len):
+                block_list = []
+                block_list.append(counter * 2 ** 14)
+                block_list.append(2 ** 14)
+                last_piece.append(block_list)
+            block_list = []
+            block_list.append((counter + 1) * 2 ** 14)
+            block_list.append(self.last_piece)
+            last_piece.append(block_list)
+            self.requests.insert(len(self.requests), last_piece)
 
     DOWNLOADED = 0
     UPLOADED = 0
 
 if __name__ == "__main__":
-    torrent_file = TorrentFile("test.torrent")
+    torrent_file = TorrentFile("B7F10A278541640CB2AE5563A5302E6A0E7D25ED.torrent")
     torrent_file.read_file()
     download_file = DownloadFile(torrent_file)
     print(torrent_file.piece_count)
     print(download_file.requests)
     for piece_number, piece in enumerate(download_file.requests):
         for block in piece:
-            offset = block[1]
-            length = block[2]
+            offset = block[0]
+            length = block[1]
             print(piece_number, offset, length)
 
 

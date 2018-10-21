@@ -75,8 +75,8 @@ class PeerConnections():
                 self.sock.settimeout(15)
                 for index, piece in enumerate(download_file.requests):
                     for block in piece:
-                        offset = block[1]
-                        length = block[2]
+                        offset = block[0]
+                        length = block[1]
                         self.send_request(index, offset, length) # never enters second loop
                         self.parse_response()
                 self.write_binary()
@@ -189,7 +189,7 @@ class PeerConnections():
 if __name__ == '__main__':
     connect_req = ConnectReq()
     connect_req.connect()
-    torrent_file = TorrentFile("test.torrent")
+    torrent_file = TorrentFile("D375754ACC9FFD198D7CA592D49285C7CC73D1C5.torrent")
     torrent_file.read_file()
     print(torrent_file.meta_info)
     download_file = DownloadFile(torrent_file)
