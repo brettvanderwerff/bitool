@@ -29,6 +29,7 @@ class TorrentFile():
         self.info = self.meta_info[b'info']
         self.length = self.info[b'length']
         self.name = self.info[b'name']
+        self.write_name = self.name.decode('utf-8').replace(' ', '_')
         self.pieces = self.info[b'pieces']
         self.piece_length = self.info[b'piece length']
         self.piece_count = math.ceil(self.length / self.piece_length)
@@ -37,6 +38,7 @@ if __name__ == "__main__":
     torrent_file = TorrentFile("test.torrent")
     torrent_file.read_file()
     print(torrent_file.length)
+    print(torrent_file.name.decode('utf-8').replace(' ', '_'))
 
 
 

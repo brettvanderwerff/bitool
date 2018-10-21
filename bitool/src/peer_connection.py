@@ -12,9 +12,10 @@ LOOK AWAY THIS IS NOT DONE :)
 '''
 
 class PeerConnections():
-    def __init__(self, announce_req, download_file):
+    def __init__(self, announce_req, download_file, torrent_file):
         self.announce_req = announce_req
         self.download_file = download_file
+        self.torrent_file = torrent_file
         self.sock = None
 
     def gen_handshake(self):
@@ -71,11 +72,14 @@ class PeerConnections():
             self.decode_bifield(bitfeild)
             self.send_interested()
             if self.parse_response() == 1:
-                for index, (key, offset) in enumerate(
-                        download_file.template.items()):  # logic needs to be outside this function
-                    for offset in offset.values():
-                        self.send_request(index, offset) # never enters second loop
+                for index, piece in enumerate(download_file.requests):
+                    for block in piece:
+                        offset = block[1]
+                        length = block[2]
+                        self.send_request(index, offset, length) # never enters second loop
                         self.parse_response()
+                self.write_binary()
+                exit()
         else:
             print('bitfeild does not match length, dropping peer')
 
@@ -103,7 +107,7 @@ class PeerConnections():
         elif id == 7:
             print('piece')
             print(payload_length) # should check if payload lengh == block size
-            if payload_length == download_file.block_size + 9: # explains why payload is always 9 longer than piece: <len=0009+X><id=7><index><begin><block>
+            if (payload_length == download_file.block_size + 9) or (payload_length == download_file.last_piece + 9): # explains why payload is always 9 longer than piece: <len=0009+X><id=7><index><begin><block>
                 piece_count = struct.unpack(">I", self.sock.recv(4))[0]
                 print('receiving piece number ' + str(piece_count))
                 offset = struct.unpack(">I", self.sock.recv(4))[0]
@@ -111,10 +115,9 @@ class PeerConnections():
                 piece = b''
                 while len(piece) < payload_length - 9: #might need to subtract 1 from payload length is probably timing out before reaching payload_length
                     piece += self.sock.recv(4096)
-                    print(piece)
-                    print(len(piece))
                 print(piece)
                 print('len of piece is ' + str(len(piece))) # Exception occurs before reaching this point
+                self.download_file.bytes += piece
             else:
                 print('payload size not correct')
         elif id == 8:
@@ -147,15 +150,19 @@ class PeerConnections():
         return is_pstr and is_hash
 
 
-    def send_request(self, index, offset):
+    def send_request(self, index, offset, length):
         message_len = bytes([0, 0, 0, 13])  # 4 byte value indicating message length
         id = bytes([6])  # single decimal byte message ID
         index = index.to_bytes(4, 'big')  # four byte zero index for first piece
         offset = offset.to_bytes(4, 'big') # four byte block offset
-        n = 2 ** 14
-        length = n.to_bytes(4, 'big')  # standardized block length for 2 **14 bytes
+        length = length.to_bytes(4, 'big')  # standardized block length for 2 **14 bytes
         request = message_len + id + index + offset + length
         self.sock.send(request)
+
+    def write_binary(self):
+        with open(self.torrent_file.write_name, 'wb') as file:
+            file.write(self.download_file.bytes)
+
 
     def connect(self):
         '''
@@ -186,5 +193,5 @@ if __name__ == '__main__':
     download_file = DownloadFile(torrent_file)
     announce_req = AnnounceReq(connect_req, torrent_file, download_file)
     announce_req.connect()
-    peer_connection = PeerConnections(announce_req, download_file)
+    peer_connection = PeerConnections(announce_req, download_file, torrent_file)
     peer_connection.connect()
