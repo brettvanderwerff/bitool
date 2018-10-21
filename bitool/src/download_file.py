@@ -13,6 +13,7 @@ class DownloadFile():
         self.last_piece = torrent_file.length % torrent_file.piece_length
         self.bytes = b''
         self.have = []
+        self.done = False
 
         if self.last_piece == 0:
             adj = 0
@@ -74,12 +75,10 @@ class DownloadFile():
     UPLOADED = 0
 
 if __name__ == "__main__":
-    torrent_file = TorrentFile("B7F10A278541640CB2AE5563A5302E6A0E7D25ED.torrent")
+    torrent_file = TorrentFile("bbt.torrent")
     torrent_file.read_file()
     download_file = DownloadFile(torrent_file)
-    for index, piece in enumerate(download_file.requests):
-        print(len(download_file.have[index]))
-        print(len(download_file.requests[index]))
+    print(torrent_file.piece_count)
 
 
 

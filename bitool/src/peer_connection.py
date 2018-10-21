@@ -79,10 +79,10 @@ class PeerConnections():
                             offset = block[0]
                             length = block[1]
                             self.send_request(index, offset, length) # never enters second loop
-                            self.parse_response()
-                            download_file.have[index][block_number] = True
-                            print(download_file.have)
+                            if self.parse_response() == 7:
+                                download_file.have[index][block_number] = True
                 self.write_binary()
+                download_file.done = True
                 exit()
         else:
             print('bitfeild does not match length, dropping peer')
@@ -95,6 +95,8 @@ class PeerConnections():
         print("ID of response is " + str(id) + ": ")
         if id == 0:
             print('choked')
+            print('dropping peer due to choke')
+            raise TimeoutError
         elif id == 1:
             print('unchoked')
         elif id == 2:
@@ -172,18 +174,18 @@ class PeerConnections():
         '''
         Master connection method for PeerConnection
         '''
-
-        for peer in announce_req.ips_ports:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.settimeout(5)
-            try:
-                self.send_handshakes(peer)
-            except (TimeoutError, OSError, struct.error, BrokenPipeError) as e:
-                print('Error has occured')
+        while not download_file.done: # need to make sure not calling same list of peers over and over
+            for peer in announce_req.ips_ports:
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.sock.settimeout(5)
+                try:
+                    self.send_handshakes(peer)
+                except (TimeoutError, OSError, struct.error, BrokenPipeError) as e:
+                    print('Error has occured')
+                    self.sock.close()
+                    continue
+                self.send_interested()
                 self.sock.close()
-                continue
-            self.send_interested()
-            self.sock.close()
 
 
 # ToDo master method for connection
@@ -192,7 +194,7 @@ class PeerConnections():
 if __name__ == '__main__':
     connect_req = ConnectReq()
     connect_req.connect()
-    torrent_file = TorrentFile("bbt.torrent")
+    torrent_file = TorrentFile("ram.torrent")
     torrent_file.read_file()
     download_file = DownloadFile(torrent_file)
     announce_req = AnnounceReq(connect_req, torrent_file, download_file)
