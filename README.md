@@ -2,9 +2,9 @@
 
 A bit torrent client built for Ubuntu 18.04 with Python 3.
 
-==Work in Progress==
 
-Warning: A work in progress hobby project to learn low level network tools, does work but is very incomplete use at your own risk.
+Warning: A work in progress hobby project to learn low level network tools. Currently it is able to download 
+a torrent, slowly :) . Project is very incomplete and may be insecure use at your own risk.
 
 ## Installation
 
@@ -21,6 +21,10 @@ $sudo apt-get install python3-libtorrent
 ```commandline
 $python3 bitool.py "your magnet link in quotation here"
 ```
+
+Credit to [LordAro](https://github.com/LordAro), [danfolkes](https://github.com/danfolkes) and their contributors for developing [Magnet2Torrent](https://github.com/LordAro/Magnet2Torrent), which this project uses a modified version of
+
+
 
 
 
