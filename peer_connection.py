@@ -10,7 +10,6 @@ import hashlib
 import binascii
 import sys
 
-
 magnet = magnet_link.MagnetLink(sys.argv[1])
 torrent = download_file.DownloadFile(magnet)
 
@@ -115,19 +114,6 @@ def gen_ips():
     return parse_ips(response)
 
 
-def gen_peer_id():
-    '''
-    Generates a 20 byte peer ID as per bit torrent protocol: http://www.bittorrent.org/beps/bep_0020.html
-    :return:
-    '''
-    peer_id = ['-AZ2060-']
-
-    for i in range(12):
-        peer_id.append(str(random.randrange(1, 9)))
-
-    return bytearray(''.join(peer_id), 'utf-8')
-
-
 def build_handshake(hash):
     pstrlen = bytes([19])
     pstr = b'BitTorrent protocol'
@@ -166,6 +152,7 @@ def validate_handshake(response, hash):
 
 
 def recv_unchoked(sock):
+
     for index_number, piece in enumerate(torrent.requests):
         for block_number, block in enumerate(piece):
 
@@ -188,11 +175,9 @@ def parse_response(sock):
         raise TimeoutError
 
     elif id == 1:
-        try:
-            print('Message type: unchoked, peer will allow sharing')
-            recv_unchoked(sock)
-        except:
-            print('Error peer dropped')
+        print('Message type: unchoked, peer will allow sharing')
+        recv_unchoked(sock)
+
 
     elif id == 5:
         # Message type: bitfield
@@ -238,15 +223,20 @@ def write_binary():
 
 
 def recv_piece(payload_length, sock):
-    if (payload_length == torrent.block_size + 9) or (
-            payload_length == torrent.last_piece + 9):
+    if (payload_length == torrent.block_size + 9) or (payload_length == torrent.last_piece + 9):
+        piece_count = struct.unpack(">I", sock.recv(4))[0]
+        print('receiving piece number ' + str(piece_count))
+        offset = struct.unpack(">I", sock.recv(4))[0]
+        print('with offset ' + str(offset))
         piece = b''
         while len(piece) < payload_length - 9:
             piece += sock.recv(4096)
+        print('bytes added')
         torrent.bytes += piece
         torrent.have[torrent.cur_index][torrent.cur_block] = True
         progress = str(round((sum([sum(piece) for piece in torrent.have]) / sum([len(piece) for piece in torrent.have]) * 100), 2))
         print("receiving data from peer... " + progress + " % complete")
+
 
 
 
@@ -264,7 +254,7 @@ def send_request(index, offset, length):
 def connect_peers(ips, hash):
     for peer in ips:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(5)
+        sock.settimeout(2.5)
 
         try:
             print("Attempting to receive from peer at IP address: " + str(peer[0] + ", port " + str(peer[1])))

@@ -4,7 +4,7 @@ A bit torrent client built for Ubuntu 18.04 with Python 3.
 
 
 Warning: A work in progress hobby project to learn low level network tools. Currently it is able to download 
-a torrent, slowly :) . Project is very incomplete and may be insecure use at your own risk.
+a torrent, slowly, most of the time :) . Project is very incomplete and may be insecure use at your own risk.
 
 ## Installation
 
