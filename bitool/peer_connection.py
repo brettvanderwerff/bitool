@@ -13,6 +13,9 @@ magnet = magnet_link.MagnetLink(sys.argv[1])
 torrent = download_file.DownloadFile(magnet)
 
 def parse_trackers():
+    '''
+    Parses trackers from the magnet link, extracts the url and port number for each tracker.
+    '''
     tracker_list = []
     for tracker in magnet.trackers:
         tracker = tracker.decode('utf-8').split('/')[-1]
@@ -23,6 +26,9 @@ def parse_trackers():
     return tracker_list
 
 def build_request():
+    '''
+    Builds a request to connnect to tracker.
+    '''
     protocol_id = 0x41727101980
     action = 0
     transaction_id = random.randrange(1, 1000)
@@ -30,17 +36,26 @@ def build_request():
     return request
 
 def gen_hash():
+    '''
+    Generated SHA1 hash based on the 'info' section of the magnet link data.
+    '''
     info = magnet.info
     encoded_info = bencoder.encode(info)
     return hashlib.sha1(encoded_info)
 
 def gen_peer_id():
+    '''
+    Generates peer ID according to conventions at: http://www.bittorrent.org/beps/bep_0020.html
+    '''
     peer_id = ['-AZ2060-']
     for i in range(12):
         peer_id.append(str(random.randrange(1, 9)))
     return bytearray(''.join(peer_id), 'utf-8')
 
 def build_announce_req(connection_id, hash, peer_id):
+    '''
+    Builds an announce request to get a peer list from the tracker.
+    '''
     binary_hash = binascii.a2b_hex(hash.hexdigest())
     action = 1
     transaction_id = random.randrange(1, 1000)
@@ -70,6 +85,9 @@ def build_announce_req(connection_id, hash, peer_id):
 
 
 def communicate_DGRAM(target, message):
+    '''
+    Primary function for sending and receiving information with tracker via DGRAM.
+    '''
     sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     sock.settimeout(15)
     sock.connect(target)
