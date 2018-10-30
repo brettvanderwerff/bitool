@@ -2,10 +2,9 @@ import socket
 import struct
 import bencoder
 import random
-import magnet_link
+from bitool import magnet_link, download_file
 from bitstring import BitArray
 import os
-import download_file
 import hashlib
 import binascii
 import sys
@@ -233,6 +232,7 @@ def recv_piece(payload_length, sock):
             piece += sock.recv(4096)
         print('bytes added')
         torrent.bytes += piece
+        print(len(torrent.bytes))
         torrent.have[torrent.cur_index][torrent.cur_block] = True
         progress = str(round((sum([sum(piece) for piece in torrent.have]) / sum([len(piece) for piece in torrent.have]) * 100), 2))
         print("receiving data from peer... " + progress + " % complete")

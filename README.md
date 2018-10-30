@@ -16,10 +16,10 @@ a torrent, slowly, most of the time :) . Project is very incomplete and may be i
 $sudo apt-get install python3-libtorrent
 ```
 
-3. Run bitool.py as script passing a magent link as an argument
+3. Run bitool passing a magent link as a command line argument
 
 ```commandline
-$python3 bitool.py "your magnet link in quotation here"
+$python -m bitool "your magnet link in quotation here"
 ```
 
 Credit to [LordAro](https://github.com/LordAro), [danfolkes](https://github.com/danfolkes) and their contributors for developing [Magnet2Torrent](https://github.com/LordAro/Magnet2Torrent), which this project uses a modified version of

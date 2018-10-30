@@ -1,4 +1,4 @@
-import Magnet2Torrent
+from bitool import Magnet2Torrent
 import math
 
 class MagnetLink():
