@@ -10,10 +10,12 @@ a torrent, slowly, most of the time :) . Project is very incomplete and may be i
 
 1. Clone repo
 
-2. Install libtorrent
+2. Install libtorrent and requirements
 
 ```commandline
 $sudo apt-get install python3-libtorrent
+$pip install requirements.txt
+
 ```
 
 3. Run bitool passing a magent link as a command line argument
