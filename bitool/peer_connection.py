@@ -97,6 +97,10 @@ def communicate_DGRAM(target, message):
     return response
 
 def connect_tracker(tracker_list, request, hash, peer_id):
+    '''
+    Connects to each tracker in the tracker_list, if tracker connects will return a response that contains a list
+    of IP addresses for potential peers.
+    '''
     for tracker in tracker_list:
         try:
             print('Connecting to trackers...')
@@ -112,6 +116,9 @@ def connect_tracker(tracker_list, request, hash, peer_id):
             continue
 
 def parse_ips(response):
+    '''
+    Parses response from tracker and unpacks the encoded IP addresses and Ports.
+    '''
     ips_ports = []
     for offset in range(20, len(response), 6):
         raw_ip = struct.unpack_from(">BBBB", response, offset)
@@ -123,6 +130,8 @@ def parse_ips(response):
 
 
 def gen_ips():
+    '''Master function for connecting to trackers and getting IP addresses and port numbers of peers.
+    '''
     tracker_list = parse_trackers()
     request = build_request()
     hash = gen_hash()
