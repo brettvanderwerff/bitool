@@ -2,6 +2,9 @@ from bitool import Magnet2Torrent
 import math
 
 class MagnetLink():
+    '''
+    Represents the magnet link, has attributes for most critical information contained within the magnet link.
+    '''
     def __init__(self, magnet_link):
         meta_info = Magnet2Torrent.main(magnet_link)
 

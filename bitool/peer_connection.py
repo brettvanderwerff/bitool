@@ -141,6 +141,8 @@ def gen_ips():
 
 
 def build_handshake(hash):
+    '''Generates handshake for sending to peer.
+    '''
     pstrlen = bytes([19])
     pstr = b'BitTorrent protocol'
     reserved = (bytes([0]) * 8)
@@ -151,6 +153,8 @@ def build_handshake(hash):
 
 
 def build_interested():
+    '''Builds the 'interested' message.
+    '''
     message_len = bytes([0, 0, 0, 1])
     id = bytes([2])
 
@@ -161,8 +165,6 @@ def validate_handshake(response, hash):
     '''
     Checks if a handshake response from a peer contains the pstr b'BitTorrent protocol' and contains the
     same SHA1 hash our bitorrent client sent in the original handshake message.
-
-    :param response: A byte stream response from a peer that has received a handshake message.
     '''
 
     is_pstr = False
@@ -178,6 +180,9 @@ def validate_handshake(response, hash):
 
 
 def recv_unchoked(sock):
+    '''
+    Coordinates sending reuest messages if the peers responds with an unchocked message
+    '''
 
     for index_number, piece in enumerate(torrent.requests):
         for block_number, block in enumerate(piece):
@@ -194,6 +199,8 @@ def recv_unchoked(sock):
 
 
 def parse_response(sock):
+    '''Handles responses from a peer and determines correct function to call to handle that response type.
+    '''
     payload_length = struct.unpack(">I", sock.recv(4))[0]
     id = ord(sock.recv(1))
     if id == 0:
@@ -226,6 +233,8 @@ def parse_response(sock):
 
 
 def eval_bitfield(payload_length, sock):
+    '''Determines if bitfield response from a peer is of the correct length.
+    '''
     bitfield = sock.recv(4096)
     if len(bitfield) == payload_length - 1:
         bit_array = BitArray(bitfield)
@@ -237,6 +246,8 @@ def eval_bitfield(payload_length, sock):
 
 
 def write_binary():
+    '''Writes files from memory to the disk,will only run after the torrent is done downloading.
+    '''
     os.mkdir(magnet.name)
     offset = 0
     for file in magnet.write_data:
@@ -249,6 +260,8 @@ def write_binary():
 
 
 def recv_piece(payload_length, sock):
+    '''recieves byte stream of a piece from a peer. Prints informative data for debugging.
+    '''
     if (payload_length == torrent.block_size + 9) or (payload_length == torrent.last_piece + 9):
         piece_count = struct.unpack(">I", sock.recv(4))[0]
         print('receiving piece number ' + str(piece_count))
@@ -265,20 +278,21 @@ def recv_piece(payload_length, sock):
         print("receiving data from peer... " + progress + " % complete")
 
 
-
-
 def send_request(index, offset, length):
+    '''Requests a specifi piece from a peer.
+    '''
     message_len = bytes([0, 0, 0, 13])
     id = bytes([6])
     index = index.to_bytes(4, 'big')
     offset = offset.to_bytes(4, 'big')
     length = length.to_bytes(4, 'big')
     request = message_len + id + index + offset + length
-
     return request
 
 
 def connect_peers(ips, hash):
+    '''Cycles through all peers, attempting to form a connection for sharing with each one.
+    '''
     for peer in ips:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2.5)
@@ -302,6 +316,8 @@ def connect_peers(ips, hash):
 
 
 def run():
+    '''Main function runs until torrent is done downloading.
+    '''
     while torrent.done == False:
         ips = gen_ips()
         hash = gen_hash()

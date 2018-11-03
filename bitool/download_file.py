@@ -2,7 +2,8 @@ import math
 
 class DownloadFile():
     '''
-    Class represents the file being downloaded via the bit torrent network
+    Class represents the file being downloaded via the bit torrent network. Attributes represent what has and has not
+    been downloaded.
     '''
     def __init__(self, magnet):
         self.blocks_per_piece = int(math.ceil(magnet.piece_length / 2 ** 14))
