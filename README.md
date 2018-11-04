@@ -14,7 +14,7 @@ a torrent, slowly, most of the time :) . Project is very incomplete and may be i
 
 ```commandline
 $sudo apt-get install python3-libtorrent
-$pip install requirements.txt
+$pip install -r requirements.txt
 
 ```
 

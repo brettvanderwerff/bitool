@@ -8,6 +8,7 @@ import os
 import hashlib
 import binascii
 import sys
+import threading
 
 magnet = magnet_link.MagnetLink(sys.argv[1])
 torrent = download_file.DownloadFile(magnet)
